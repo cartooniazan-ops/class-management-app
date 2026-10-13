@@ -16,14 +16,15 @@ export default async function AdminPage() {
 
   const [
     { data: profiles }, { data: subjects }, { data: teachers },
-    { data: timetable }, { data: crPermissions }, { data: settings }
+    { data: timetable }, { data: crPermissions }, { data: settings }, { data: teacherAssignments }
   ] = await Promise.all([
     supabase.from("profiles").select("id,full_name,email,role,is_active,roll_number,created_at").order("role").order("full_name").limit(500),
     supabase.from("subjects").select("id,name,description").order("name"),
     supabase.from("profiles").select("id,full_name,email").eq("role","teacher").eq("is_active",true).order("full_name"),
     supabase.from("timetable_entries").select("id,subject_id,teacher_id,weekday,starts_at,ends_at,room,valid_from,valid_until,is_cancelled,subjects(name),profiles:teacher_id(full_name)").order("weekday").order("starts_at").limit(300),
     supabase.from("cr_permissions").select("student_id,can_post_announcements,can_manage_timetable,can_manage_attendance,can_manage_assignments,granted_by,granted_at"),
-    supabase.from("class_settings").select("id,class_name,academic_year,timezone").order("updated_at",{ascending:false}).limit(1).maybeSingle()
+    supabase.from("class_settings").select("id,class_name,academic_year,timezone").order("updated_at",{ascending:false}).limit(1).maybeSingle(),
+    supabase.from("teacher_subjects").select("teacher_id,subject_id,profiles:teacher_id(full_name),subjects(name)")
   ]);
 
   const normalizedTimetable = (timetable || []).map((slot) => ({
@@ -43,6 +44,7 @@ export default async function AdminPage() {
         adminId={user.id}
         initialProfiles={profiles || []}
         initialSubjects={subjects || []}
+        initialTeacherAssignments={(teacherAssignments || []).map((a) => ({ ...a, profiles: Array.isArray(a.profiles) ? (a.profiles[0] ?? null) : a.profiles, subjects: Array.isArray(a.subjects) ? (a.subjects[0] ?? null) : a.subjects }))}
         initialTeachers={teachers || []}
         initialTimetable={normalizedTimetable}
         initialCrPermissions={crPermissions || []}
