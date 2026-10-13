@@ -51,6 +51,7 @@ export default async function StudentPage() {
       .eq("is_published", true).order("is_pinned", { ascending: false }).order("published_at", { ascending: false }).limit(100),
     supabase.from("timetable_entries")
       .select("id,weekday,starts_at,ends_at,room,subject_id,subjects(name)")
+      .gte("weekday", 1).lte("weekday", 5)
       .eq("is_cancelled", false).order("weekday").order("starts_at").limit(100),
     supabase.from("notifications")
       .select("id,title,body,kind,read_at,created_at,target_path")
