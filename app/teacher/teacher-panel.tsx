@@ -12,7 +12,7 @@ type Submission = { id: string; assignment_id: string; student_id: string; answe
 type Student = { id: string; full_name: string; roll_number: string | null };
 type Props = { teacherId: string; teacherName: string; subjects: Subject[]; assignments: Assignment[]; timetable: Slot[]; submissions: Submission[]; students: Student[] };
 
-const days = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+const days = ["", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday"];
 const inputClass = "w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm outline-none focus:border-blue-400";
 const buttonClass = "inline-flex items-center justify-center gap-2 rounded-xl bg-blue-700 px-4 py-2.5 text-sm font-bold text-white hover:bg-blue-800 disabled:opacity-50";
 
