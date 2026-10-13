@@ -21,7 +21,7 @@ type Props = {
 
 const inputClass = "w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm outline-none focus:border-blue-400";
 const buttonClass = "inline-flex items-center justify-center gap-2 rounded-xl bg-blue-700 px-4 py-2.5 text-sm font-bold text-white hover:bg-blue-800 disabled:opacity-50";
-const dayNames = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+const dayNames = ["", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday"];
 
 export default function StudentPanel(props: Props) {
   const supabase = createClient();
