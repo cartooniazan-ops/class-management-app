@@ -1,129 +1,88 @@
-import {
-  ArrowDownRight, ArrowUpRight, Bell, BookOpen, CalendarDays, CheckCheck,
-  ChevronDown, ClipboardCheck, Clock3, FileText, GraduationCap, LayoutDashboard,
-  LifeBuoy, Megaphone, MoreHorizontal, Plus, Search, Settings2, ShieldCheck,
-  Users, UserRound, BookMarked
-} from "lucide-react";
+import Link from "next/link";
+import { redirect } from "next/navigation";
+import { Bell, BookOpen, CalendarDays, ClipboardCheck, FileText, GraduationCap, Megaphone, ShieldCheck, Users } from "lucide-react";
+import { createClient } from "@/lib/supabase/server";
+import DashboardTools from "./dashboard-tools";
 
-const navGroups = [
-  { title: "WORKSPACE", items: [
-    { label: "Overview", icon: LayoutDashboard, active: true },
-    { label: "Attendance", icon: ClipboardCheck },
-    { label: "Assignments", icon: FileText },
-    { label: "Class timetable", icon: CalendarDays },
-    { label: "Books & notes", icon: BookOpen },
-  ]},
-  { title: "CLASS COMMUNITY", items: [
-    { label: "Students & teachers", icon: Users },
-    { label: "Announcements", icon: Megaphone },
-    { label: "Class representative", icon: ShieldCheck },
-  ]},
-];
+export const dynamic = "force-dynamic";
 
-const tasks = [
-  { subject: "Physics", title: "Chapter 04 — Numerical problems", due: "Today, 11:59 PM", status: "Due soon", tone: "amber", initials: "PH", color: "violet" },
-  { subject: "Computer Science", title: "Database design worksheet", due: "Tomorrow, 02:00 PM", status: "In progress", tone: "blue", initials: "CS", color: "blue" },
-  { subject: "English", title: "Argumentative essay draft", due: "Friday, 09:00 AM", status: "New", tone: "green", initials: "EN", color: "green" },
-];
+type Row = Record<string, any>;
 
-const events = [
-  { day: "13", month: "OCT", title: "Computer Science", meta: "09:00 – 09:45 AM · Room 12", color: "blue" },
-  { day: "13", month: "OCT", title: "Physics", meta: "10:00 – 10:45 AM · Lab 2", color: "violet" },
-  { day: "13", month: "OCT", title: "English Language", meta: "11:15 – 12:00 PM · Room 12", color: "green" },
-];
-
-function SectionTitle({ children, action }: { children: React.ReactNode; action?: string }) {
-  return <div className="mb-4 flex items-center justify-between gap-3"><h2 className="text-[15px] font-bold tracking-[-0.02em] text-slate-800">{children}</h2>{action && <button className="text-xs font-semibold text-blue-700 hover:text-blue-900">{action}</button>}</div>;
+function Panel({ title, children, icon: Icon }: { title: string; children: React.ReactNode; icon: any }) {
+  return <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm"><h2 className="mb-4 flex items-center gap-2 text-sm font-bold text-slate-800"><Icon size={17} className="text-blue-700"/>{title}</h2>{children}</section>;
 }
 
-export default function Home() {
-  return (
-    <main className="min-h-screen lg:flex">
-      <aside className="hidden w-[248px] shrink-0 flex-col border-r border-slate-200 bg-white px-5 py-6 lg:flex">
-        <a href="#" className="mb-9 flex items-center gap-3 px-2">
-          <span className="flex h-10 w-10 items-center justify-center rounded-2xl bg-blue-700 text-white shadow-sm"><GraduationCap size={22} /></span>
-          <span><span className="block text-[15px] font-extrabold tracking-tight">Classroom</span><span className="text-[11px] font-medium text-slate-400">CLASS MANAGEMENT</span></span>
-        </a>
-        {navGroups.map((group) => <div className="mb-7" key={group.title}>
-          <p className="mb-2 px-3 text-[10px] font-bold tracking-[0.16em] text-slate-400">{group.title}</p>
-          <nav className="space-y-1">{group.items.map((item) => {
-            const Icon = item.icon;
-            return <a key={item.label} href="#" className={`flex items-center gap-3 rounded-xl px-3 py-2.5 text-[13px] font-semibold transition ${item.active ? "bg-blue-50 text-blue-700" : "text-slate-500 hover:bg-slate-50 hover:text-slate-900"}`}><Icon size={17} strokeWidth={1.9} />{item.label}{item.active && <span className="ml-auto h-1.5 w-1.5 rounded-full bg-blue-600" />}</a>;
-          })}</nav>
-        </div>)}
-        <div className="mt-auto rounded-2xl bg-slate-50 p-4">
-          <div className="mb-3 flex h-9 w-9 items-center justify-center rounded-xl bg-white text-slate-600 shadow-sm"><LifeBuoy size={18}/></div>
-          <p className="text-sm font-bold">Need a hand?</p>
-          <p className="mt-1 text-xs leading-5 text-slate-500">Check the setup guide to connect your class workspace.</p>
-          <a href="https://github.com/cartooniazan-ops/class-management-app" className="mt-3 inline-block text-xs font-bold text-blue-700">View setup guide ↗</a>
+function Empty({ children }: { children: React.ReactNode }) {
+  return <p className="rounded-xl bg-slate-50 px-4 py-5 text-sm text-slate-500">{children}</p>;
+}
+
+export default async function Home() {
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) redirect("/login");
+  const { data: profile } = await supabase.from("profiles").select("id,full_name,email,role,is_active,roll_number").eq("id", user.id).maybeSingle();
+
+  if (!profile || !profile.is_active) {
+    return <main className="min-h-screen bg-slate-50 p-6"><div className="mx-auto mt-16 max-w-xl rounded-2xl border bg-white p-8"><GraduationCap className="mb-4 text-blue-700" size={32}/><h1 className="text-2xl font-extrabold">Your class account is not ready</h1><p className="mt-3 text-sm leading-6 text-slate-600">You are signed in, but an administrator has not activated your class profile yet. Ask your class administrator to provision your account. Public sign-up is disabled.</p><form action="/auth/signout" method="post" className="mt-6"><button className="rounded-xl border px-4 py-2 text-sm font-semibold">Sign out</button></form></div></main>;
+  }
+
+  const role = profile.role as string;
+  const [{ data: subjects }, { data: assignments }, { data: announcements }, { data: timetable }, { data: notifications }, { data: attendance }] = await Promise.all([
+    supabase.from("subjects").select("id,name,description").order("name").limit(100),
+    supabase.from("assignments").select("id,title,status,due_at,total_marks,subject_id,teacher_id,subjects(name)").order("created_at",{ascending:false}).limit(8),
+    supabase.from("announcements").select("id,title,body,is_pinned,published_at,created_at").or("is_published.eq.true,author_id.eq."+user.id).order("created_at",{ascending:false}).limit(6),
+    supabase.from("timetable_entries").select("id,weekday,starts_at,ends_at,room,is_cancelled,subjects(name)").eq("is_cancelled",false).order("weekday").order("starts_at").limit(8),
+    supabase.from("notifications").select("id,title,body,read_at,created_at,target_path").eq("recipient_id",user.id).order("created_at",{ascending:false}).limit(5),
+    supabase.from("attendance_records").select("id,status,session_id").eq("student_id",user.id).limit(200),
+  ]);
+
+  const { count: studentCount } = role === "admin" || role === "teacher"
+    ? await supabase.from("profiles").select("id",{count:"exact",head:true}).eq("role","student").eq("is_active",true)
+    : { count: null };
+  const { count: teacherCount } = role === "admin"
+    ? await supabase.from("profiles").select("id",{count:"exact",head:true}).eq("role","teacher").eq("is_active",true)
+    : { count: null };
+  const { count: pendingCount } = role === "teacher" || role === "admin"
+    ? await supabase.from("submissions").select("id",{count:"exact",head:true}).eq("status","submitted")
+    : { count: null };
+  const unread = (notifications || []).filter((n: Row) => !n.read_at).length;
+  const greeting = profile.full_name?.split(" ")[0] || "there";
+  const nav = [
+    { href:"#assignments", label:"Assignments", icon:FileText },
+    { href:"#attendance", label:"Attendance", icon:ClipboardCheck },
+    { href:"#timetable", label:"Timetable", icon:CalendarDays },
+    { href:"#announcements", label:"Announcements", icon:Megaphone },
+    { href:"#subjects", label:"Subjects", icon:BookOpen },
+    { href:"#notifications", label:"Notifications", icon:Bell },
+  ];
+
+  return <main className="min-h-screen bg-[#f5f7fb] text-slate-900 lg:flex">
+    <aside className="hidden w-64 shrink-0 flex-col border-r border-slate-200 bg-white p-5 lg:flex">
+      <Link href="/" className="mb-8 flex items-center gap-3 px-2"><span className="grid h-10 w-10 place-items-center rounded-2xl bg-blue-700 text-white"><GraduationCap size={22}/></span><span><strong className="block text-base">Classroom</strong><small className="text-[10px] font-bold tracking-widest text-slate-400">CLASS MANAGEMENT</small></span></Link>
+      <p className="mb-2 px-3 text-[10px] font-bold tracking-widest text-slate-400">YOUR WORKSPACE</p>
+      <nav className="space-y-1">{nav.map(({href,label,icon:Icon})=><a key={href} href={href} className="flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-semibold text-slate-600 hover:bg-blue-50 hover:text-blue-700"><Icon size={17}/>{label}</a>)}</nav>
+      {(role==="admin" || role==="teacher") && <div className="mt-7 rounded-xl bg-blue-50 p-4"><p className="text-xs font-bold text-blue-900">Teaching tools</p><p className="mt-1 text-xs leading-5 text-blue-800/75">Create assignments and share updates with your class.</p></div>}
+      <div className="mt-auto border-t border-slate-100 pt-4"><p className="truncate text-sm font-bold">{profile.full_name}</p><p className="mt-1 text-xs capitalize text-slate-500">{role}{profile.roll_number ? " · "+profile.roll_number : ""}</p><form action="/auth/signout" method="post" className="mt-4"><button className="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm font-semibold hover:bg-slate-50">Sign out</button></form></div>
+    </aside>
+    <section className="min-w-0 flex-1">
+      <header className="sticky top-0 z-10 flex min-h-[70px] items-center justify-between border-b border-slate-200 bg-white/90 px-4 backdrop-blur sm:px-8"><div><p className="text-xs text-slate-400">Class workspace</p><h1 className="text-lg font-extrabold">Overview</h1></div><div className="flex items-center gap-3"><span className="rounded-full bg-blue-50 px-3 py-1.5 text-xs font-bold capitalize text-blue-700">{role}</span><span className="relative rounded-xl border border-slate-200 p-2 text-slate-600"><Bell size={18}/>{unread>0&&<span className="absolute -right-1 -top-1 grid h-4 min-w-4 place-items-center rounded-full bg-rose-500 px-1 text-[9px] font-bold text-white">{unread}</span>}</span></div></header>
+      <div className="mx-auto max-w-7xl space-y-6 p-4 sm:p-8">
+        <div className="flex flex-col justify-between gap-3 sm:flex-row sm:items-end"><div><span className="rounded-md bg-emerald-50 px-2 py-1 text-[10px] font-bold uppercase tracking-wider text-emerald-700">Connected workspace</span><h2 className="mt-3 text-3xl font-extrabold tracking-tight">Welcome, {greeting} 👋</h2><p className="mt-2 text-sm text-slate-500">Your class information below is loaded from the connected database.</p></div><p className="text-xs text-slate-400">Signed in as {profile.email || user.email}</p></div>
+        <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+          {[{label:"Subjects",value:subjects?.length ?? 0,icon:BookOpen},{label:"Assignments",value:assignments?.length ?? 0,icon:FileText},{label:role==="student"?"My attendance records":"Active students",value:role==="student"?(attendance?.length ?? 0):(studentCount ?? "—"),icon:Users},{label:role==="student"?"Unread notifications":"Pending reviews",value:role==="student"?unread:(pendingCount ?? "—"),icon:Bell}].map(({label,value,icon:Icon})=><div key={label} className="rounded-2xl border border-slate-200 bg-white p-5"><span className="grid h-10 w-10 place-items-center rounded-xl bg-blue-50 text-blue-700"><Icon size={19}/></span><p className="mt-4 text-sm text-slate-500">{label}</p><p className="mt-1 text-3xl font-extrabold">{value}</p></div>)}
         </div>
-      </aside>
-
-      <section className="min-w-0 flex-1">
-        <header className="sticky top-0 z-10 flex h-[72px] items-center justify-between border-b border-slate-200/80 bg-white/90 px-4 backdrop-blur-md sm:px-7 lg:px-10">
-          <div className="flex items-center gap-3">
-            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-blue-50 text-blue-700 lg:hidden"><GraduationCap size={20}/></div>
-            <div><p className="text-xs font-medium text-slate-400">Monday, October 13, 2026</p><h1 className="text-lg font-extrabold tracking-[-0.03em] sm:text-xl">Class overview</h1></div>
-          </div>
-          <div className="flex items-center gap-2 sm:gap-4">
-            <button aria-label="Search" className="hidden h-10 items-center gap-2 rounded-xl border border-slate-200 px-3 text-xs text-slate-400 sm:flex"><Search size={15}/> Search anything <kbd className="ml-4 rounded border border-slate-200 px-1.5 py-0.5 text-[10px]">⌘ K</kbd></button>
-            <button aria-label="Notifications" className="relative flex h-10 w-10 items-center justify-center rounded-xl border border-slate-200 text-slate-600 hover:bg-slate-50"><Bell size={18}/><span className="absolute right-2 top-2 h-2 w-2 rounded-full border-2 border-white bg-rose-500"/></button>
-            <div className="flex items-center gap-2 border-l border-slate-200 pl-3 sm:pl-4"><div className="flex h-9 w-9 items-center justify-center rounded-full bg-[#dfe8ff] text-xs font-extrabold text-blue-800">AD</div><div className="hidden sm:block"><p className="text-xs font-bold">Class Admin</p><p className="text-[11px] text-slate-400">Administrator</p></div><ChevronDown size={14} className="hidden text-slate-400 sm:block"/></div>
-          </div>
-        </header>
-
-        <div className="mx-auto max-w-[1440px] px-4 py-7 sm:px-7 lg:px-10 lg:py-9">
-          <div className="mb-7 flex flex-col justify-between gap-4 sm:flex-row sm:items-end">
-            <div><div className="mb-2 flex items-center gap-2"><span className="rounded-md bg-emerald-50 px-2 py-1 text-[10px] font-bold uppercase tracking-wider text-emerald-700">Class workspace</span><span className="text-xs text-slate-400">• Setup preview</span></div><h2 className="text-2xl font-extrabold tracking-[-0.04em] sm:text-[30px]">Good morning, Admin <span>✦</span></h2><p className="mt-2 text-sm text-slate-500">Here’s what’s happening with your class today.</p></div>
-            <div className="flex gap-2"><button className="inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-xs font-bold text-slate-700 shadow-sm hover:bg-slate-50"><CalendarDays size={15}/> This week <ChevronDown size={14}/></button><button className="inline-flex items-center gap-2 rounded-xl bg-blue-700 px-4 py-2.5 text-xs font-bold text-white shadow-sm hover:bg-blue-800"><Plus size={16}/> Quick action</button></div>
-          </div>
-
-          <div className="mb-7 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-            {[
-              { label: "Total students", value: "—", sub: "Add your class roster", icon: Users, trend: "Admin managed", color: "blue" },
-              { label: "Teachers", value: "—", sub: "Assign subject teachers", icon: UserRound, trend: "Subject access", color: "violet" },
-              { label: "Attendance today", value: "—", sub: "No records yet", icon: CheckCheck, trend: "Live tracking", color: "green" },
-              { label: "Pending reviews", value: "—", sub: "Submissions to review", icon: FileText, trend: "Teacher workflow", color: "amber" },
-            ].map((stat) => {
-              const Icon = stat.icon;
-              const colors: Record<string, string> = { blue: "bg-blue-50 text-blue-700", violet: "bg-violet-50 text-violet-700", green: "bg-emerald-50 text-emerald-700", amber: "bg-amber-50 text-amber-700" };
-              return <div key={stat.label} className="rounded-2xl border border-slate-200/80 bg-white p-5 shadow-[0_2px_12px_rgba(15,23,42,0.02)]"><div className="flex items-start justify-between"><span className={`flex h-10 w-10 items-center justify-center rounded-xl ${colors[stat.color]}`}><Icon size={19}/></span><span className="rounded-full bg-slate-50 px-2.5 py-1 text-[10px] font-semibold text-slate-500">{stat.trend}</span></div><p className="mt-5 text-[13px] font-medium text-slate-500">{stat.label}</p><p className="mt-1 text-[28px] font-extrabold tracking-tight">{stat.value}</p><p className="mt-1 text-xs text-slate-400">{stat.sub}</p></div>;
-            })}
-          </div>
-
-          <div className="grid gap-6 xl:grid-cols-[minmax(0,1.5fr)_minmax(320px,0.85fr)]">
-            <div className="space-y-6">
-              <section className="rounded-2xl border border-slate-200/80 bg-white p-5 shadow-[0_2px_12px_rgba(15,23,42,0.02)] sm:p-6">
-                <SectionTitle action="View all assignments">Assignments & submissions</SectionTitle>
-                <div className="mb-5 flex flex-wrap gap-2"><span className="rounded-lg bg-blue-50 px-3 py-1.5 text-xs font-bold text-blue-700">All subjects</span><span className="rounded-lg px-3 py-1.5 text-xs font-semibold text-slate-500 hover:bg-slate-50">Due soon</span><span className="rounded-lg px-3 py-1.5 text-xs font-semibold text-slate-500 hover:bg-slate-50">Needs review</span></div>
-                <div className="divide-y divide-slate-100">{tasks.map((task) => <div key={task.title} className="flex items-center gap-3 py-4 first:pt-0 last:pb-0"><div className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-xl text-xs font-extrabold ${task.color === "violet" ? "bg-violet-50 text-violet-700" : task.color === "blue" ? "bg-blue-50 text-blue-700" : "bg-emerald-50 text-emerald-700"}`}>{task.initials}</div><div className="min-w-0 flex-1"><p className="text-[10px] font-bold uppercase tracking-wider text-slate-400">{task.subject}</p><p className="mt-1 truncate text-sm font-bold text-slate-800">{task.title}</p><p className="mt-1 flex items-center gap-1.5 text-xs text-slate-400"><Clock3 size={12}/>{task.due}</p></div><span className={`hidden rounded-lg px-2.5 py-1.5 text-[10px] font-bold sm:inline-block ${task.tone === "amber" ? "bg-amber-50 text-amber-700" : task.tone === "blue" ? "bg-blue-50 text-blue-700" : "bg-emerald-50 text-emerald-700"}`}>{task.status}</span><button aria-label="More assignment options" className="text-slate-400"><MoreHorizontal size={18}/></button></div>)}</div>
-              </section>
-
-              <section className="rounded-2xl border border-slate-200/80 bg-white p-5 shadow-[0_2px_12px_rgba(15,23,42,0.02)] sm:p-6">
-                <SectionTitle action="Open announcements">Class announcements</SectionTitle>
-                <div className="flex gap-3 rounded-xl bg-blue-50/70 p-4"><div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-white text-blue-700"><Megaphone size={18}/></div><div><div className="flex flex-wrap items-center gap-2"><p className="text-sm font-bold">Welcome to your class workspace</p><span className="rounded bg-blue-100 px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wide text-blue-700">Pinned</span></div><p className="mt-1.5 text-xs leading-5 text-slate-500">Once setup is complete, your admin can publish class notices, timetable updates and important reminders here.</p><p className="mt-2 text-[10px] font-medium text-slate-400">System preview · Visible to the class after publishing</p></div></div>
-              </section>
-            </div>
-
-            <div className="space-y-6">
-              <section className="rounded-2xl border border-slate-200/80 bg-white p-5 shadow-[0_2px_12px_rgba(15,23,42,0.02)] sm:p-6">
-                <SectionTitle action="View timetable">Today’s timetable</SectionTitle>
-                <div className="mb-5 flex items-center justify-between rounded-xl bg-slate-50 px-3.5 py-3"><div className="flex items-center gap-2 text-xs font-bold text-slate-700"><CalendarDays size={15} className="text-blue-700"/> Monday, 13 October</div><span className="text-[10px] font-semibold text-slate-400">3 sample slots</span></div>
-                <div className="space-y-4">{events.map((event, i) => <div key={event.title} className="flex gap-3"><div className="w-12 shrink-0 pt-0.5 text-center"><p className="text-lg font-extrabold leading-5">{event.day}</p><p className="mt-1 text-[9px] font-bold tracking-widest text-slate-400">{event.month}</p></div><div className={`w-1 shrink-0 rounded-full ${event.color === "blue" ? "bg-blue-500" : event.color === "violet" ? "bg-violet-500" : "bg-emerald-500"}`}/><div className="min-w-0 pb-1"><p className="text-sm font-bold">{event.title}</p><p className="mt-1 text-xs text-slate-400">{event.meta}</p></div></div>)}</div>
-                <button className="mt-5 w-full rounded-xl border border-slate-200 py-2.5 text-xs font-bold text-slate-600 hover:bg-slate-50">Open full timetable</button>
-              </section>
-
-              <section className="rounded-2xl border border-slate-200/80 bg-white p-5 shadow-[0_2px_12px_rgba(15,23,42,0.02)] sm:p-6">
-                <SectionTitle>Quick access</SectionTitle>
-                <div className="grid grid-cols-2 gap-3">
-                  {[{ title: "Manage users", desc: "Students & teachers", icon: Users, color: "blue" }, { title: "Mark attendance", desc: "Daily class record", icon: ClipboardCheck, color: "green" }, { title: "Add a subject", desc: "Build your syllabus", icon: BookMarked, color: "violet" }, { title: "Post a notice", desc: "Keep everyone updated", icon: Megaphone, color: "amber" }].map((item) => { const Icon = item.icon; return <button key={item.title} className="rounded-xl border border-slate-100 p-3.5 text-left transition hover:border-blue-200 hover:bg-blue-50/40"><span className={`mb-3 flex h-9 w-9 items-center justify-center rounded-xl ${item.color === "blue" ? "bg-blue-50 text-blue-700" : item.color === "green" ? "bg-emerald-50 text-emerald-700" : item.color === "violet" ? "bg-violet-50 text-violet-700" : "bg-amber-50 text-amber-700"}`}><Icon size={17}/></span><span className="block text-xs font-bold">{item.title}</span><span className="mt-1 block text-[10px] leading-4 text-slate-400">{item.desc}</span></button>; })}
-                </div>
-              </section>
-            </div>
-          </div>
-          <footer className="mt-8 flex flex-col justify-between gap-2 border-t border-slate-200 pt-5 text-[11px] text-slate-400 sm:flex-row"><p>© 2026 Classroom · Class Management Workspace</p><p className="flex items-center gap-1.5"><span className="h-1.5 w-1.5 rounded-full bg-amber-400"/> Preview data only — connect Supabase to enable live records</p></footer>
+        <DashboardTools role={role} userId={user.id} subjects={subjects || []}/>
+        <div className="grid gap-6 xl:grid-cols-2">
+          <div id="assignments"><Panel title="Assignments" icon={FileText}>{assignments?.length ? <div className="divide-y divide-slate-100">{assignments.map((a:Row)=><div key={a.id} className="flex items-start justify-between gap-3 py-3 first:pt-0"><div><p className="font-semibold">{a.title}</p><p className="mt-1 text-xs text-slate-500">{a.subjects?.name || "Class assignment"}{a.due_at ? " · Due "+new Date(a.due_at).toLocaleString("en-PK",{dateStyle:"medium",timeStyle:"short"}) : ""}</p></div><span className="rounded-lg bg-slate-100 px-2 py-1 text-[10px] font-bold capitalize">{a.status}</span></div>)}</div>:<Empty>No assignments are available to your account yet.</Empty>}</Panel></div>
+          <div id="announcements"><Panel title="Announcements" icon={Megaphone}>{announcements?.length ? <div className="space-y-3">{announcements.map((a:Row)=><article key={a.id} className="rounded-xl bg-slate-50 p-4"><div className="flex items-start justify-between gap-2"><h3 className="text-sm font-bold">{a.title}</h3>{a.is_pinned&&<span className="text-[10px] font-bold text-blue-700">PINNED</span>}</div><p className="mt-2 whitespace-pre-wrap text-sm leading-6 text-slate-600">{a.body}</p><p className="mt-2 text-[10px] text-slate-400">{a.published_at?new Date(a.published_at).toLocaleDateString():"Draft"}</p></article>)}</div>:<Empty>No published announcements yet.</Empty>}</Panel></div>
+          <div id="subjects"><Panel title="Subjects" icon={BookOpen}>{subjects?.length ? <div className="grid gap-3 sm:grid-cols-2">{subjects.map((s:Row)=><div key={s.id} className="rounded-xl border border-slate-100 p-4"><p className="font-bold">{s.name}</p><p className="mt-1 text-xs text-slate-500">{s.description || "No description added."}</p></div>)}</div>:<Empty>No subjects have been added yet.</Empty>}</Panel></div>
+          <div id="timetable"><Panel title="Timetable" icon={CalendarDays}>{timetable?.length ? <div className="space-y-3">{timetable.map((t:Row)=><div key={t.id} className="flex items-center gap-3 rounded-xl bg-slate-50 p-3"><div className="rounded-lg bg-white px-3 py-2 text-xs font-bold text-blue-700">{["Sun","Mon","Tue","Wed","Thu","Fri","Sat"][t.weekday]}</div><div className="min-w-0 flex-1"><p className="text-sm font-bold">{t.subjects?.name || "Class"}</p><p className="text-xs text-slate-500">{String(t.starts_at).slice(0,5)}–{String(t.ends_at).slice(0,5)}{t.room?" · "+t.room:""}</p></div></div>)}</div>:<Empty>No timetable entries have been published.</Empty>}</Panel></div>
+          <div id="attendance"><Panel title="My attendance" icon={ClipboardCheck}>{role==="student" ? <div className="space-y-2">{attendance?.length ? attendance.slice(0,8).map((a:Row)=><div key={a.id} className="flex justify-between rounded-lg bg-slate-50 px-3 py-2 text-sm"><span>Attendance record</span><span className="font-bold capitalize">{a.status}</span></div>):<Empty>No attendance records yet.</Empty>}</div>:<p className="text-sm text-slate-500">Attendance is private. Students can see only their own records; authorized teachers and admins manage class attendance through the attendance workflow.</p>}</Panel></div>
+          <div id="notifications"><Panel title="Recent notifications" icon={Bell}>{notifications?.length ? <div className="space-y-2">{notifications.map((n:Row)=><div key={n.id} className={`rounded-xl p-3 ${n.read_at?"bg-slate-50":"bg-blue-50"}`}><p className="text-sm font-bold">{n.title}</p><p className="mt-1 text-xs text-slate-500">{n.body}</p></div>)}</div>:<Empty>You’re all caught up. New notifications will appear here.</Empty>}</Panel></div>
+          <div><Panel title="Role & permissions" icon={ShieldCheck}><p className="text-sm leading-6 text-slate-600">This account has the <strong className="capitalize">{role}</strong> role. Access to records is enforced by Supabase row-level security, not just by hiding buttons in the interface.</p>{role==="admin"&&<p className="mt-3 text-xs text-slate-500">Use the admin tools above to add subjects and provision accounts.</p>}</Panel></div>
         </div>
-      </section>
-    </main>
-  );
+        <footer className="border-t border-slate-200 py-5 text-xs text-slate-400">Classroom · Secure class workspace</footer>
+      </div>
+    </section>
+  </main>;
 }
