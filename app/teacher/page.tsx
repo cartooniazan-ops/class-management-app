@@ -42,6 +42,7 @@ export default async function TeacherPage() {
       .order("created_at", { ascending: false }).limit(100),
     supabase.from("timetable_entries")
       .select("id,weekday,starts_at,ends_at,room,subject_id,subjects(name)")
+      .gte("weekday", 1).lte("weekday", 5)
       .eq("teacher_id", user.id).eq("is_cancelled", false)
       .order("weekday").order("starts_at").limit(100),
     supabase.from("submissions")
