@@ -54,6 +54,7 @@ export default async function Home() {
     { href:"#announcements", label:"Announcements", icon:Megaphone },
     { href:"#subjects", label:"Subjects", icon:BookOpen },
     { href:"#notifications", label:"Notifications", icon:Bell },
+    ...(role === "admin" ? [{ href:"/admin", label:"Admin panel", icon:ShieldCheck }] : []),
   ];
 
   return <main className="min-h-screen bg-[#f5f7fb] text-slate-900 lg:flex">
