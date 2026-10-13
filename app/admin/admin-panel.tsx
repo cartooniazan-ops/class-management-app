@@ -9,11 +9,11 @@ type Subject = {id:string;name:string;description:string|null};
 type Teacher = {id:string;full_name:string;email:string|null};
 type Slot = {id:string;subject_id:string;teacher_id:string;weekday:number;starts_at:string;ends_at:string;room:string|null;valid_from:string;valid_until:string|null;is_cancelled:boolean;subjects?:{name:string}|null;profiles?:{full_name:string}|null};
 type CRPermission = {student_id:string;can_post_announcements:boolean;can_manage_timetable:boolean;can_manage_attendance:boolean;can_manage_assignments:boolean};
-type Settings = {id:string;class_name:string;academic_year:string|null;timezone:string}|null;
+type ClassSettings = {id:string;class_name:string;academic_year:string|null;timezone:string}|null;
 type Tab = "accounts"|"subjects"|"timetable"|"cr"|"settings";
 
-export default function AdminPanel({adminId,initialProfiles,initialSubjects,initialTeachers,initialTimetable,initialCrPermissions,initialSettings}:{adminId:string;initialProfiles:Profile[];initialSubjects:Subject[];initialTeachers:Teacher[];initialTimetable:Slot[];initialCrPermissions:CRPermission[];initialSettings:Settings}) {
- const [tab,setTab]=useState<Tab>("accounts"); const [profiles,setProfiles]=useState(initialProfiles); const [subjects,setSubjects]=useState(initialSubjects); const [timetable,setTimetable]=useState(initialTimetable); const [crPermissions,setCrPermissions]=useState(initialCrPermissions); const [settings,setSettings]=useState<Settings>(initialSettings);
+export default function AdminPanel({adminId,initialProfiles,initialSubjects,initialTeachers,initialTimetable,initialCrPermissions,initialSettings}:{adminId:string;initialProfiles:Profile[];initialSubjects:Subject[];initialTeachers:Teacher[];initialTimetable:Slot[];initialCrPermissions:CRPermission[];initialSettings:ClassSettings}) {
+ const [tab,setTab]=useState<Tab>("accounts"); const [profiles,setProfiles]=useState(initialProfiles); const [subjects,setSubjects]=useState(initialSubjects); const [timetable,setTimetable]=useState(initialTimetable); const [crPermissions,setCrPermissions]=useState(initialCrPermissions); const [settings,setSettings]=useState<ClassSettings>(initialSettings);
  const [busy,setBusy]=useState(false); const [message,setMessage]=useState(""); const [error,setError]=useState("");
  const [search,setSearch]=useState("");
  const students=useMemo(()=>profiles.filter(p=>p.role==="student"&&p.is_active),[profiles]);
