@@ -26,6 +26,12 @@ export default async function AdminPage() {
     supabase.from("class_settings").select("id,class_name,academic_year,timezone").order("updated_at",{ascending:false}).limit(1).maybeSingle()
   ]);
 
+  const normalizedTimetable = (timetable || []).map((slot) => ({
+    ...slot,
+    subjects: Array.isArray(slot.subjects) ? (slot.subjects[0] ?? null) : slot.subjects,
+    profiles: Array.isArray(slot.profiles) ? (slot.profiles[0] ?? null) : slot.profiles,
+  }));
+
   return <main className="min-h-screen bg-[#f5f7fb] text-slate-900">
     <header className="sticky top-0 z-10 flex items-center justify-between border-b border-slate-200 bg-white/95 px-4 py-4 backdrop-blur sm:px-8">
       <div className="flex items-center gap-3"><span className="grid h-10 w-10 place-items-center rounded-xl bg-blue-700 text-white"><GraduationCap size={22}/></span><div><p className="text-xs text-slate-400">Class workspace</p><h1 className="font-extrabold">Admin control panel</h1></div></div>
@@ -38,7 +44,7 @@ export default async function AdminPage() {
         initialProfiles={profiles || []}
         initialSubjects={subjects || []}
         initialTeachers={teachers || []}
-        initialTimetable={timetable || []}
+        initialTimetable={normalizedTimetable}
         initialCrPermissions={crPermissions || []}
         initialSettings={settings || null}
       />
