@@ -3,7 +3,7 @@
 import { FormEvent, useMemo, useState } from "react";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
-import { BookOpen, CalendarDays, ClipboardCheck, FileText, Megaphone, Save } from "lucide-react";
+import { ArrowLeft, BookOpen, CalendarDays, ClipboardCheck, FileText, Megaphone, Save } from "lucide-react";
 
 type Subject = { id: string; name: string; description: string | null };
 type Assignment = { id: string; title: string; instructions: string | null; subject_id: string; status: string; due_at: string | null; total_marks: number | null; created_at: string; subjects?: { name: string } | null };
