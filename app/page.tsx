@@ -60,7 +60,7 @@ export default async function Home() {
     ...(role === "student" ? [{ href:"/student", label:"Student panel", icon:GraduationCap }] : []),
   ];
 
-  const mobileNavItems = nav.map(item => ({ ...item, icon: item.icon.displayName || item.icon.name || "BookOpen" }));
+  const mobileNavItems = nav.map(item => ({ href: item.href, label: item.label, icon: item.label === "Assignments" ? "FileText" : item.label === "Attendance" ? "ClipboardCheck" : item.label === "Timetable" ? "CalendarDays" : item.label === "Announcements" ? "Megaphone" : item.label === "Subjects" ? "BookOpen" : item.label === "Notifications" ? "Bell" : item.label === "Admin panel" ? "ShieldCheck" : item.label === "Teacher panel" || item.label === "Student panel" ? "GraduationCap" : "BookOpen" }));
 
   return <main className="min-h-screen bg-[#f5f7fb] text-slate-900 lg:flex">
     <aside className="hidden w-64 shrink-0 flex-col border-r border-slate-200 bg-white p-5 lg:flex">
