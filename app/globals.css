@@ -9,12 +9,27 @@
 }
 
 * { box-sizing: border-box; }
-html, body { min-height: 100%; }
+html, body { min-height: 100%; max-width: 100%; }
+html { -webkit-text-size-adjust: 100%; }
 body {
   margin: 0;
+  overflow-x: hidden;
   background: var(--paper);
   color: var(--ink);
   font-family: Arial, Helvetica, sans-serif;
 }
-button, a { -webkit-tap-highlight-color: transparent; }
+button, a, input, select, textarea { -webkit-tap-highlight-color: transparent; }
+button, [role="button"] { touch-action: manipulation; }
+input, select, textarea { max-width: 100%; font: inherit; }
+img, video, canvas, svg { max-width: 100%; }
+table { border-collapse: collapse; }
 ::selection { background: #dce5ff; color: #182230; }
+
+@media (max-width: 640px) {
+  main { min-width: 0; }
+  section, article, form, header, nav { min-width: 0; }
+  button, a[role="button"] { min-height: 42px; }
+  input, select, textarea { font-size: 16px; }
+  h1 { overflow-wrap: anywhere; }
+  p, h2, h3, h4, label { overflow-wrap: anywhere; }
+}
