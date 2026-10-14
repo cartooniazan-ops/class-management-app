@@ -127,7 +127,7 @@ export default function TeacherPanel({ teacherId, teacherName, subjects, assignm
     ["attendance", "Attendance"], ["timetable", "Timetable"], ["notices", "Notices"]
   ];
   return <main className="min-h-screen bg-[#f5f7fb] text-slate-900">
-    <header className="sticky top-0 z-10 flex items-center justify-between gap-3 border-b border-slate-200 bg-white/95 px-4 py-4 backdrop-blur sm:px-8">
+    <header className="sticky top-0 z-10 flex items-center justify-between gap-2 border-b border-slate-200 bg-white/95 px-3 py-3 backdrop-blur sm:gap-3 sm:px-8 sm:py-4">
       <div className="flex items-center gap-3"><span className="grid h-10 w-10 place-items-center rounded-xl bg-blue-700 text-white"><BookOpen size={21}/></span><div><p className="text-xs text-slate-400">Class workspace</p><h1 className="font-extrabold">Teacher panel</h1></div></div>
       <Link href="/" className="rounded-xl border border-slate-200 px-3 py-2 text-sm font-semibold hover:bg-slate-50"><ArrowLeft size={15} className="mr-1 inline"/> Dashboard</Link>
     </header>
