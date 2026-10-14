@@ -1,9 +1,11 @@
 "use client";
 
-import { FormEvent, Suspense, useState } from "react";
+import { FormEvent, Suspense, useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
-import { GraduationCap, LockKeyhole, Mail, ShieldCheck } from "lucide-react";
+import { Download, GraduationCap, LockKeyhole, Mail, ShieldCheck } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
+
+type InstallPromptEvent = Event & { prompt: () => Promise<void>; userChoice: Promise<{ outcome: "accepted" | "dismissed"; platform: string }> };
 
 function LoginForm() {
   const searchParams = useSearchParams();
@@ -13,7 +15,7 @@ function LoginForm() {
   const [loading, setLoading] = useState(false);
   const setupNeeded = searchParams.get("setup") === "1";
 
-  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
+  useEffect(() => {\n    const onBeforeInstallPrompt = (event: Event) => {\n      event.preventDefault();\n      setInstallPrompt(event as InstallPromptEvent);\n    };\n    const onInstalled = () => {\n      setInstallPrompt(null);\n      setInstallMessage("App installed successfully. You can open it from your Home Screen.");\n    };\n    window.addEventListener("beforeinstallprompt", onBeforeInstallPrompt);\n    window.addEventListener("appinstalled", onInstalled);\n    return () => {\n      window.removeEventListener("beforeinstallprompt", onBeforeInstallPrompt);\n      window.removeEventListener("appinstalled", onInstalled);\n    };\n  }, []);\n\n  async function handleInstall() {\n    setInstallMessage("");\n    if (installPrompt) {\n      await installPrompt.prompt();\n      const choice = await installPrompt.userChoice;\n      if (choice.outcome === "accepted") setInstallMessage("Installation started. Follow your browser prompts to finish.");\n      else setInstallMessage("Installation was cancelled. You can install it later from your browser menu.");\n      setInstallPrompt(null);\n      return;\n    }\n    const isIOS = /iphone|ipad|ipod/i.test(navigator.userAgent);\n    const isStandalone = window.matchMedia("(display-mode: standalone)").matches || (navigator as Navigator & { standalone?: boolean }).standalone === true;\n    if (isStandalone) setInstallMessage("This app is already installed on your device.");\n    else if (isIOS) setInstallMessage("To install: open this page in Safari, tap Share, then choose Add to Home Screen.");\n    else setInstallMessage("If the install prompt is not available yet, open your browser menu and choose Install app or Add to Home screen. If missing, wait for the website deployment to finish and reload.");\n  }\n\n  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setError("");
     setLoading(true);
@@ -49,7 +51,7 @@ function LoginForm() {
             {error && <p role="alert" className="rounded-xl bg-rose-50 p-3 text-xs leading-5 text-rose-700">{error}</p>}
             <button disabled={loading} type="submit" className="flex h-12 w-full items-center justify-center rounded-xl bg-blue-700 text-sm font-bold text-white shadow-sm transition hover:bg-blue-800 disabled:cursor-not-allowed disabled:opacity-60">{loading ? "Signing in…" : "Sign in securely"}</button>
           </form>
-          <p className="mt-6 text-center text-xs text-slate-400">Accounts are created by an administrator. Public sign-up is disabled.</p>
+          <div className="mt-5">\n            <button type="button" onClick={handleInstall} className="flex min-h-12 w-full items-center justify-center gap-2 rounded-xl border border-blue-200 bg-blue-50 px-4 py-3 text-sm font-bold text-blue-800 transition hover:bg-blue-100">\n              <Download size={17} /> Download / Install App\n            </button>\n            {installMessage && <p role="status" className="mt-3 rounded-xl bg-slate-50 p-3 text-xs leading-5 text-slate-600">{installMessage}</p>}\n          </div>\n          <p className="mt-6 text-center text-xs text-slate-400">Accounts are created by an administrator. Public sign-up is disabled.</p>
         </section>
       </div>
     </main>
