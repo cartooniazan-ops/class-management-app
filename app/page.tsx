@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import { Bell, BookOpen, CalendarDays, ClipboardCheck, FileText, GraduationCap, Megaphone, ShieldCheck, Users } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import DashboardTools from "./dashboard-tools";
+import MobileNav from "./mobile-nav";
 
 export const dynamic = "force-dynamic";
 
@@ -59,6 +60,8 @@ export default async function Home() {
     ...(role === "student" ? [{ href:"/student", label:"Student panel", icon:GraduationCap }] : []),
   ];
 
+  const mobileNavItems = nav.map(item => ({ ...item, icon: item.icon.displayName || item.icon.name || "BookOpen" }));
+
   return <main className="min-h-screen bg-[#f5f7fb] text-slate-900 lg:flex">
     <aside className="hidden w-64 shrink-0 flex-col border-r border-slate-200 bg-white p-5 lg:flex">
       <Link href="/" className="mb-8 flex items-center gap-3 px-2"><span className="grid h-10 w-10 place-items-center rounded-2xl bg-blue-700 text-white"><GraduationCap size={22}/></span><span><strong className="block text-base">Classroom</strong><small className="text-[10px] font-bold tracking-widest text-slate-400">CLASS MANAGEMENT</small></span></Link>
@@ -68,7 +71,7 @@ export default async function Home() {
       <div className="mt-auto border-t border-slate-100 pt-4"><p className="truncate text-sm font-bold">{profile.full_name}</p><p className="mt-1 text-xs capitalize text-slate-500">{role}{profile.roll_number ? " · "+profile.roll_number : ""}</p><form action="/auth/signout" method="post" className="mt-4"><button className="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm font-semibold hover:bg-slate-50">Sign out</button></form></div>
     </aside>
     <section className="min-w-0 flex-1">
-      <header className="sticky top-0 z-10 flex min-h-[70px] items-center justify-between border-b border-slate-200 bg-white/90 px-4 backdrop-blur sm:px-8"><div><p className="text-xs text-slate-400">Class workspace</p><h1 className="text-lg font-extrabold">Overview</h1></div><div className="flex items-center gap-3"><span className="rounded-full bg-blue-50 px-3 py-1.5 text-xs font-bold capitalize text-blue-700">{role}</span><span className="relative rounded-xl border border-slate-200 p-2 text-slate-600"><Bell size={18}/>{unread>0&&<span className="absolute -right-1 -top-1 grid h-4 min-w-4 place-items-center rounded-full bg-rose-500 px-1 text-[9px] font-bold text-white">{unread}</span>}</span></div></header>
+      <header className="sticky top-0 z-20 flex min-h-[70px] items-center justify-between gap-3 border-b border-slate-200 bg-white/90 px-4 backdrop-blur sm:px-8"><div className="flex min-w-0 items-center gap-3"><MobileNav items={mobileNavItems} fullName={profile.full_name || "Class member"} role={role} rollNumber={profile.roll_number} /><div><p className="text-xs text-slate-400">Class workspace</p><h1 className="text-lg font-extrabold">Overview</h1></div></div><div className="flex items-center gap-3"><span className="rounded-full bg-blue-50 px-3 py-1.5 text-xs font-bold capitalize text-blue-700">{role}</span><span className="relative rounded-xl border border-slate-200 p-2 text-slate-600"><Bell size={18}/>{unread>0&&<span className="absolute -right-1 -top-1 grid h-4 min-w-4 place-items-center rounded-full bg-rose-500 px-1 text-[9px] font-bold text-white">{unread}</span>}</span></div></header>
       <div className="mx-auto max-w-7xl space-y-6 p-4 sm:p-8">
         <div className="flex flex-col justify-between gap-3 sm:flex-row sm:items-end"><div><span className="rounded-md bg-emerald-50 px-2 py-1 text-[10px] font-bold uppercase tracking-wider text-emerald-700">Connected workspace</span><h2 className="mt-3 text-3xl font-extrabold tracking-tight">Welcome, {greeting} 👋</h2><p className="mt-2 text-sm text-slate-500">Your class information below is loaded from the connected database.</p></div><p className="text-xs text-slate-400">Signed in as {profile.email || user.email}</p></div>
         <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
