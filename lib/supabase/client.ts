@@ -8,5 +8,7 @@ export function createClient() {
     throw new Error("Supabase is not configured. Copy .env.example to .env.local and add your project URL and anon key.");
   }
 
-  return createBrowserClient(url, anonKey);
+  return createBrowserClient(url, anonKey, {
+    cookieOptions: { maxAge: 60 * 60 * 24 * 365 },
+  });
 }
